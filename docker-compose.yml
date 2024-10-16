@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "4040:80"
+    environment:
+      PMA_HOST: mysql
+    depends_on:
+      - mysql
+
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    ports:
+      - "4060:80"
+    volumes:
+      - ./php:/var/www/html
+    depends_on:
+      - mysql
+
+  rails:
+    build:
+      context: ./rails
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./rails:/app
+      - gem_data:/usr/local/bundle
+    working_dir: /app
+    environment:
+      DATABASE_HOST: mysql
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: "19810402qpdl"
+    depends_on:
+      - mysql
+
+  node:
+    image: node:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./node:/usr/src/app
+    working_dir: /usr/src/app/front
+    command: bash -c "npm install && npm start"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - HOST=0.0.0.0
+
+  mysql:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "19810402qpdl"
+
+  go:
+    image: jitesoft/go:latest
+    ports:
+      - "4700:80"
+    volumes:
+      - ./go:/go/src/app
+    working_dir: /go/src/app
+    command: go run main.go
+
+volumes:
+  gem_data:
